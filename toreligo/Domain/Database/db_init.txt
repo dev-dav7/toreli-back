@@ -1,0 +1,75 @@
+﻿-- create schema prod;
+-- alter schema prod owner to prod;
+create sequence prod.ids;
+GRANT USAGE, SELECT ON SEQUENCE prod.ids TO prod;
+create table user_data
+(
+    id            bigint default nextval('ids'::regclass) not null
+        primary key,
+    login         varchar(32)                             not null,
+    birthday_date date                                    not null,
+    hash          bytea,
+    salt          bytea,
+    name          varchar(64)                             not null
+);
+
+alter table user_data
+    owner to prod;
+
+create table prod.auth_session
+(
+    id            bigint default nextval('ids'::regclass) not null
+        primary key,
+    id_user_data  bigint
+        references prod.user_data (id),
+
+    refresh_token varchar(64),
+    jwt_token     varchar(512),
+    id_jwt_token     varchar(512),
+    added_at timestamp                               not null,
+    expired_at timestamp                             not null,
+    is_used       boolean,
+    is_revoked       boolean
+);
+
+alter table prod.auth_session
+    owner to prod;
+
+create table prod.group_track
+(
+    id         bigint default nextval('ids'::regclass) not null
+        primary key,
+    id_owner   bigint
+        references prod.user_data (id),
+    name_group varchar(100)                            not null,
+    removed_at timestamp                               null
+);
+
+alter table prod.group_track
+    owner to prod;
+
+create table prod.track
+(
+    id       bigint default nextval('ids'::regclass) not null primary key,
+    id_owner bigint references prod.user_data (id),
+    id_group bigint references prod.group_track (id),
+    params   json,
+    options  json,
+    removed_at timestamp                               null
+);
+
+alter table prod.track
+    owner to prod;
+
+create table prod.track_fill
+(
+    id       bigint default nextval('ids'::regclass) not null primary key,
+    id_track bigint references prod.track (id),
+    day      int,
+    day_e    int,
+    values   json
+);
+
+
+alter table prod.track_fill
+    owner to prod;

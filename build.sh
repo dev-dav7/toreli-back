@@ -1,0 +1,2 @@
+dotnet publish --configuration Release --runtime linux-x64 --framework net7.0 --self-contained  || exit /b 101
+wsl.exe rsync -rltucv -W --progress --del --compress-level=9 bin/Release/linux-x64/publish/
